@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadowdark GM Console - Phase 2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=New+Rocker&family=Tagesschrift&family=Montserrat:wght@400;700&display=swap');
+
+        :root {
+            /* Define our "Theme" fonts here */
+            --title-font: 'New Rocker', cursive;
+            --header-font: 'Tagesschrift', serif;
+            --ui-font: 'Segoe UI', serif;
+            --accent-font: 'MedievalSharp', cursive;
+
+            --dark-red: #4a0404;
+            --dark-dark: #000000;
+            --black: #000;
+            --gold: #c5a059;
+            --bg: #1a1a1a;
+            --text: #e0e0e0;
+            --card-bg: #2a2a2a;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--black);
+            /* font-family: 'Segoe UI', serif; */
+            font-family: 'Segoe UI', serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            align-items: start;
+            max-width: 1600px;
+            /* Optional: prevents the console from getting too wide on ultrawide monitors */
+            margin: 0 auto;
+            /* Centers the entire console */
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+            /* Prevents long text from breaking the grid layout */
+        }
+
+        .card {
+            /* Use your new image */
+            background-image: url('paper_bg.jpg');
+            background-size: cover;
+            background-position: center;
+
+            /* Fallback color in case the image fails to load */
+            background-color: #c7c7c7;
+            /* border: 2px solid var(--gold); */
+            padding: 15px;
+            /* border-radius: 8px; */
+        }
+
+        .card-header {
+            position: relative;
+            width: 100%;
+            display: inline-block;
+            min-width: 290px;
+            height: 40px;
+            margin-bottom: 20px;
+            /* Centers the internal container */
+            overflow: hidden;
+        }
+
+        /* Flexbox container for the 3-part bar */
+        .bar-container {
+            display: flex;
+            height: 40px;
+            width: 100%;
+        }
+
+        /* The black middle section that expands */
+        .bar-fill {
+            background-color: black;
+            flex-grow: 1;
+            height: 40px;
+            margin: 0 -1px; /* This eliminates the 1-pixel gap */
+        }
+
+        /* Styling for the transparent PNG ends */
+        .cap {
+            width: 129px;
+            /* Matches your example width */
+            height: 40px;
+            flex-shrink: 0;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .card-header h2 {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            color: var(--text);
+            font-family: var(--header-font);
+            font-size: 1.2rem;
+            white-space: nowrap;
+            z-index: 10;
+            z-index: 10;
+            /* Ensures it stays on top */
+            pointer-events: none;
+            /* Allows clicks to pass through to the bar if needed */
+        }
+
+        .left-grunge {
+            background-image: url('grunge_left.png');
+        }
+
+        .right-grunge {
+            background-image: url('grunge_right.png');
+        }
+
+        .timer-display {
+            font-weight: bold;
+            color: var(--black);
+
+
+            font-family: monospace;
+            font-size: 2.5rem;
+        }
+
+        button {
+            background: var(--dark-dark);
+            color: white;
+            border: 1px solid var(--black);
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 0px;
+            margin: 2px;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        .luck-btn {
+            background: #333;
+            /* Default dark */
+            color: white;
+            border: none;
+
+            /* Create the perfect circle */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+
+            /* Perfect centering for the star */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0;
+            /* Remove the padding that caused the oval shape */
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .luck-btn.active {
+            background: var(--gold);
+            color: black;
+        }
+
+        /* The new button style that uses your image as the background */
+        .combat-btn {
+            width: 32px;
+            /* Adjust size as needed */
+            height: 32px;
+            background-image: url('combat_button.jpg');
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #000;
+            cursor: pointer;
+            padding: 0;
+            transition: filter 0.2s ease, transform 0.1s;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* The "Glow" effect we talked about earlier */
+        .combat-btn:hover {
+            filter: drop-shadow(0 0 5px var(--gold)) brightness(1.2);
+            border-color: var(--gold);
+        }
+
+        /* Adds a little "press" effect when clicked */
+        .combat-btn:active {
+            transform: scale(0.95);
+        }
+
+        input {
+            background: #555;
+            color: white;
+            border: 2px solid var(--black);
+            padding: 5px;
+            border-radius: 0px;
+            width: 100%;
+            box-sizing: border-box;
+            /* Ensures padding doesn't push width over 100% */
+        }
+
+        input::placeholder {
+            color: white;
+            opacity: .5;
+            /* Browsers often make placeholders transparent by default */
+        }
+
+        /* Add this container to manage the horizontal layout */
+        .preset-input-row {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        /* Allow the name field to take most of the space */
+        #custom-name {
+            flex: 3;
+        }
+
+        /* Keep the min field smaller but flexible */
+        #custom-min {
+            flex: 1;
+        }
+
+        /* Ensure the button doesn't shrink */
+        .preset-input-row button {
+            flex: none;
+            white-space: nowrap;
+        }
+
+        .preset-item {
+            border-bottom: 1px dotted #555;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Use the Gothic font for the Main Title and Card Headers */
+        h1 {
+            font-family: var(--title-font);
+            color: var(--text);
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 3px 3px 0px #000, 0 0 15px rgba(197, 160, 89, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .combatant-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 0px solid #000;
+            border-radius: 0px;
+            border-left: 4px solid var(--dark-dark);
+        }
+
+        .hp-input {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+            background: #555;
+            color: #00ff00;
+            border: 1px solid #000;
+        }
+
+        /* Container for the Name field (Top Row) */
+        .lib-name-row {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        /* Container for HP, AC, and the Button (Bottom Row) */
+        .lib-stats-row {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+
+        /* Make the HP and AC boxes share space equally */
+        #lib-hp,
+        #lib-ac {
+            flex: 1;
+            min-width: 0;
+            /* Prevents inputs from pushing past their flex-box */
+        }
+
+        /* Keep the "Save to Library" button sized to its text */
+        .lib-stats-row button {
+            flex: 2;
+            white-space: nowrap;
+        }
+
+        .stat-badge {
+            font-size: 0.8rem;
+            background: #c0c0c0;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+
+        .library-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .resource-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            /* Subtle backing for the row */
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .resource-icon {
+            width: 60px;
+            /* Scaling down slightly from 80px looks better in the card */
+            height: 60px;
+            border: 1px solid #000;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .resource-controls {
+            flex-grow: 1;
+        }
+
+        .resource-controls p {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+        }
+
+        /* Campaign Manager Specific Layout */
+        .campaign-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            /* Uniform spacing between all elements */
+        }
+
+        /* Unified Action Button Class */
+        .campaign-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 40px;
+            background: #000;
+            /* Shadowdark black */
+            color: #fff;
+            border: 1px solid var(--gold);
+            font-family: var(--ui-font);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            /* The smooth fade effect */
+            box-sizing: border-box;
+            margin: 0;
+            text-decoration: none;
+        }
+
+        .campaign-btn:hover {
+            background: #333;
+            /* The "glow" effect */
+        }
+
+        /* Custom File Input Styling */
+        #import-file {
+            display: none;
+            /* Hide the ugly default input */
+        }
+
+        #active-custom-timers .preset-item {
+            flex-direction: column;
+            /* Stacks Timer Text over Buttons */
+            align-items: center;
+            gap: 10px;
+            padding: 15px 0;
+        }
+
+        .timer-button-row {
+            display: flex;
+            flex-direction: row;
+            /* Keeps buttons horizontal */
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+
+        /* Style for the small condition tags */
+        .condition-tag {
+            background: var(--dark-red);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid #000;
+        }
+
+        .condition-tag:hover {
+            background: #ff0000;
+            text-decoration: line-through;
+        }
+
+        /* Style for the '+' button that adds conditions */
+        .add-cond-btn {
+            background: none;
+            border: 1px dotted #555;
+            color: #555;
+            font-size: 0.7rem;
+            padding: 0 4px;
+            cursor: pointer;
+        }
+
+        .add-cond-btn:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+        /* The new Start button style using start.jpg */
+.start-timer-btn {
+    width: 32px;
+    height: 32px;
+    background-image: url('start.jpg');
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #000;
+    cursor: pointer;
+    padding: 0;
+    transition: filter 0.2s ease, transform 0.1s;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Hover glow effect matching the combat button */
+.start-timer-btn:hover {
+    filter: drop-shadow(0 0 5px var(--gold)) brightness(1.2);
+    border-color: var(--gold);
+}
+
+/* Press effect matching the combat button */
+.start-timer-btn:active {
+    transform: scale(0.95);
+}
+
+
+    </style>
+</head>
+
+<body>
+
+    <h1>Shadowdark GM Console</h1>
+
+    <div class="grid">
+        <div class="column">
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Campaign Management</h2>
+                </div>
+                <div class="campaign-controls">
+                    <p style="font-size: 1rem; color: #444; margin-top: 0px; margin-bottom: 5px;">
+                        Save or load your adventuring group.
+                    </p>
+
+                    <button class="campaign-btn" onclick="exportGameState()">
+                        💾 Save Group to File
+                    </button>
+
+                    <label for="import-file" class="campaign-btn">
+                        📂 Load Group from File
+                    </label>
+                    <input type="file" id="import-file" onchange="importGameState(event)">
+
+                    <hr style="border: 0; border-top: 1px solid #000; margin: 5px 0; opacity: 0.2;">
+
+                    <button class="campaign-btn" onclick="clearPartyAndResources()"
+                        style="background: #8b0000; border-color: #ff4444; font-weight: bold;">
+                        🔥 Start New Game
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Party Resources</h2>
+                </div>
+
+                <div class="resource-row">
+                    <img src="torches.jpg" class="resource-icon" alt="Torches">
+                    <div class="resource-controls">
+                        <p><strong>Torches:</strong> <span id="torch-count">10</span></p>
+                        <button onclick="changeResource('torch', 1)">+</button>
+                        <button onclick="changeResource('torch', -1)">-</button>
+                    </div>
+                </div>
+
+                <div class="resource-row">
+                    <img src="rations.jpg" class="resource-icon" alt="Rations">
+                    <div class="resource-controls">
+                        <p><strong>Rations:</strong> <span id="ration-count">10</span></p>
+                        <button onclick="changeResource('ration', 1)">+</button>
+                        <button onclick="changeResource('ration', -1)">-</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Active Torch</h2>
+                </div>
+                <div class="timer-display" id="torch-timer-text" style="margin-top: -15px;">60:00</div>
+                <button id="torch-start" onclick="startTorch()">Start</button>
+                <button id="torch-pause" onclick="pauseTorch()" disabled>Pause</button>
+                <button onclick="resetTorch()">Reset</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Custom Timer / Presets</h2>
+                </div>
+                <div class="preset-input-row"> <input type="text" id="custom-name" placeholder="Spell Name">
+                    <input type="number" id="custom-min" placeholder="Min" min="1">
+                    <button onclick="savePreset()">Save Preset</button>
+                </div>
+                <div id="presets-list"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Active Spells/Effects</h2>
+                </div>
+                <div id="active-custom-timers">
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container"><div class="cap left-grunge"></div><div class="bar-fill"></div><div class="cap right-grunge"></div></div>
+                    <h2>The Party</h2>
+                </div>
+                <div id="party-list">
+                </div>
+                <button onclick="addNewPlayer()">+ Add New Player</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Monster Library</h2>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;">
+                    <div class="lib-name-row">
+                        <input type="text" id="lib-name" placeholder="Name (e.g. Skeleton)" style="width: 100%;">
+                    </div>
+
+                    <div class="lib-stats-row">
+                        <input type="number" id="lib-hp" placeholder="HP">
+                        <input type="number" id="lib-ac" placeholder="AC">
+                        <button onclick="saveToLibrary()">Save to Library</button>
+                    </div>
+                </div>
+                <div id="library-display"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="bar-container">
+                        <div class="cap left-grunge"></div>
+                        <div class="bar-fill"></div>
+                        <div class="cap right-grunge"></div>
+                    </div>
+                    <h2>Initiative / Combat</h2>
+                </div>
+                <button onclick="addNPCtoCombat()">+ Add NPC</button>
+                <button onclick="clearCombat()" style="background: #333;">Clear All</button>
+                <div id="combat-list" style="margin-top: 15px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="gong-sound" src="https://actions.google.com/sounds/v1/alarms/dinner_gong.ogg"></audio>
+
+    <script>
+
+        // --- GLOBAL STATE ---
+        let resources = JSON.parse(localStorage.getItem('sd_resources')) || { torch: 10, ration: 10 };
+        let torchTimeLeft = 3600;
+        let torchInterval = null;
+        let activeTimers = {};
+        let library = JSON.parse(localStorage.getItem('sd_library')) || [];
+        let combatants = [];
+        let party = JSON.parse(localStorage.getItem('sd_party')) || [];
+        let presets = JSON.parse(localStorage.getItem('sd_presets')) || [
+            { name: "Light Spell", duration: 60 },
+            { name: "Mage Armor", duration: 480 }
+        ];
+        let luckTokens = JSON.parse(localStorage.getItem('sd_luck')) || [];
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderResources();
+            renderPresets();
+            renderLibrary();
+            renderCombat();
+            updateTorchUI();
+            renderLuck();
+            renderParty();
+        }
+
+        // --- RESOURCE LOGIC ---
+        function changeResource(type, amt) {
+            resources[type] += amt;
+            if (resources[type] < 0) resources[type] = 0;
+            localStorage.setItem('sd_resources', JSON.stringify(resources));
+            renderResources();
+        }
+
+        function renderResources() {
+            document.getElementById('torch-count').innerText = resources['torch'];
+            document.getElementById('ration-count').innerText = resources['ration'];
+        }
+
+        // --- LUCK TOKEN LOGIC ---
+        function addPlayerLuck() {
+            const name = prompt("Enter Player Name:");
+            if (name) {
+                luckTokens.push({ name, hasLuck: false });
+                saveLuck();
+            }
+        }
+
+        function toggleLuck(index) {
+            luckTokens[index].hasLuck = !luckTokens[index].hasLuck;
+            saveLuck();
+        }
+
+        function deleteLuck(index) {
+            if (confirm(`Remove ${luckTokens[index].name} from Luck tracker?`)) {
+                luckTokens.splice(index, 1);
+                saveLuck();
+            }
+        }
+
+        function saveLuck() {
+            localStorage.setItem('sd_luck', JSON.stringify(luckTokens));
+            renderLuck();
+        }
+
+        function renderLuck() {
+            const container = document.getElementById('luck-tracker');
+            if (!container) return; // Guard if element is missing
+            container.innerHTML = luckTokens.map((p, i) => `
+                <div style="background: #111; padding: 5px 10px; border-radius: 4px; border: 1px solid ${p.hasLuck ? 'var(--gold)' : '#444'}">
+                    <span style="font-size: 0.8rem; display: block; margin-bottom: 5px;">${p.name}</span>
+                    <button onclick="toggleLuck(${i})" style="background: ${p.hasLuck ? 'var(--gold)' : '#333'}; color: ${p.hasLuck ? 'black' : 'white'}; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold;">
+                        ${p.hasLuck ? '★' : '☆'}
+                    </button>
+                    <button onclick="deleteLuck(${i})" style="background: none; border: none; color: #666; font-size: 0.7rem;">×</button>
+                </div>
+            `).join('');
+        }
+
+        // --- TORCH TIMER LOGIC ---
+        function startTorch() {
+            if (torchInterval) return;
+            document.getElementById('torch-start').disabled = true;
+            document.getElementById('torch-pause').disabled = false;
+            torchInterval = setInterval(() => {
+                torchTimeLeft--;
+                if (torchTimeLeft <= 0) {
+                    clearInterval(torchInterval);
+                    torchInterval = null;
+                    triggerGong("Torch burned out!", true);
+                    torchTimeLeft = 3600;
+                    document.getElementById('torch-start').disabled = false;
+                    document.getElementById('torch-pause').disabled = true;
+                }
+                updateTorchUI();
+            }, 1000);
+        }
+
+        function pauseTorch() {
+            clearInterval(torchInterval);
+            torchInterval = null;
+            document.getElementById('torch-start').disabled = false;
+            document.getElementById('torch-pause').disabled = true;
+        }
+
+        function resetTorch() {
+            pauseTorch();
+            torchTimeLeft = 3600;
+            updateTorchUI();
+        }
+
+        function updateTorchUI() {
+            let m = Math.floor(torchTimeLeft / 60);
+            let s = torchTimeLeft % 60;
+            document.getElementById('torch-timer-text').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // --- PRESET & CUSTOM TIMER LOGIC ---
+        function savePreset() {
+            const name = document.getElementById('custom-name').value || "Effect";
+            const dur = parseInt(document.getElementById('custom-min').value) || 1;
+            presets.push({ name, duration: dur });
+            localStorage.setItem('sd_presets', JSON.stringify(presets));
+            renderPresets();
+        }
+
+        function renderPresets() {
+            const list = document.getElementById('presets-list');
+            list.innerHTML = '';
+            presets.forEach((p, index) => {
+                list.innerHTML += `
+                    <div class="preset-item">
+                        <span>${p.name} (${p.duration}m)</span>
+                        <div>
+                            <button class="start-timer-btn" onclick="startCustomTimer('${p.name}', ${p.duration})"></button>
+                            <button onclick="deletePreset(${index})" style="background:none; border:none;">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function deletePreset(index) {
+            presets.splice(index, 1);
+            localStorage.setItem('sd_presets', JSON.stringify(presets));
+            renderPresets();
+        }
+
+        function startCustomTimer(name, mins) {
+            const timerId = `timer-${Date.now()}`;
+            activeTimers[timerId] = { name: name, seconds: mins * 60, isRunning: true, interval: null };
+
+            const container = document.getElementById('active-custom-timers');
+            const timerEl = document.createElement('div');
+            timerEl.id = timerId;
+            timerEl.className = 'preset-item';
+            container.appendChild(timerEl);
+
+            runTimerLogic(timerId);
+        }
+
+        function runTimerLogic(id) {
+            activeTimers[id].isRunning = true;
+            activeTimers[id].interval = setInterval(() => {
+                if (activeTimers[id].seconds <= 0) {
+                    clearInterval(activeTimers[id].interval);
+                    triggerGong(`${activeTimers[id].name} has ended!`, false);
+                    const el = document.getElementById(id);
+                    if (el) el.remove();
+                    delete activeTimers[id];
+                } else {
+                    activeTimers[id].seconds--;
+                    updateTimerUI(id);
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI(id) {
+            const timer = activeTimers[id];
+            const m = Math.floor(timer.seconds / 60);
+            const s = timer.seconds % 60;
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            el.innerHTML = `
+        <span><strong>${timer.name}</strong>: ${m}:${s < 10 ? '0' : ''}${s}</span>
+        <div class="timer-button-row">
+            ${timer.isRunning
+                    ? `<button onclick="pauseCustomTimer('${id}')">Pause</button>`
+                    : `<button onclick="resumeCustomTimer('${id}')">Start</button>`}
+            <button onclick="resetCustomTimer('${id}')">Reset</button>
+            <button onclick="removeTimerUI('${id}')" style="background:#4a0404; border-color:#000;">❌</button>
+        </div>
+    `;
+        }
+
+        function pauseCustomTimer(id) {
+            clearInterval(activeTimers[id].interval);
+            activeTimers[id].isRunning = false;
+            updateTimerUI(id);
+        }
+
+        function resumeCustomTimer(id) { runTimerLogic(id); }
+
+        function resetCustomTimer(id) {
+            pauseCustomTimer(id);
+            const newMins = prompt("Reset to how many minutes?", Math.ceil(activeTimers[id].seconds / 60));
+            if (newMins) {
+                activeTimers[id].seconds = newMins * 60;
+                updateTimerUI(id);
+            }
+        }
+
+        function removeTimerUI(id) {
+            if (activeTimers[id]) clearInterval(activeTimers[id].interval);
+            const el = document.getElementById(id);
+            if (el) el.remove();
+            delete activeTimers[id];
+        }
+
+        // --- PARTY MANAGEMENT ---
+        function addNewPlayer() {
+            const name = prompt("Character Name:");
+            if (!name) return;
+            const hp = parseInt(prompt("Max HP:", "10")) || 10;
+            const ac = parseInt(prompt("AC:", "10")) || 10;
+
+            party.push({
+                name,
+                maxHp: hp,
+                currentHp: hp,
+                ac: ac,
+                hasLuck: false,
+                id: Date.now()
+            });
+            saveParty();
+        }
+
+        function renderParty() {
+            const container = document.getElementById('party-list');
+            container.innerHTML = party.map((p, i) => {
+                // Ensure conditions array exists
+                if (!p.conditions) p.conditions = [];
+
+                return `
+            <div class="combatant-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${p.name}</strong>
+                        <span id="cond-list-${i}" style="margin-left: 10px;">
+                            ${p.conditions.map((cond, condIdx) => `
+                                <span class="condition-tag" onclick="removeCondition(${i}, ${condIdx})">
+                                    ${cond} <span>×</span>
+                                </span>
+                            `).join('')}
+                            <button class="add-cond-btn" onclick="addCondition(${i})">+ Cond</button>
+                        </span>
+                    </div>
+                    <div>
+                        <button class="combat-btn" onclick="addPlayerToCombatFromParty(${i})"></button>
+                        <button onclick="deletePlayer(${i})" style="background:none; border:none;">🗑️</button>
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; width: 100%; display: flex; align-items: center; gap: 10px;">
+                    <span>HP: <input type="number" value="${p.currentHp}" onchange="updatePlayerStat(${i}, 'currentHp', this.value)" style="width:40px; color: #00ff00; border:1px solid #555;"> / ${p.maxHp}</span>
+                    <span>AC: <input type="number" value="${p.ac}" onchange="updatePlayerStat(${i}, 'ac', this.value)" style="width:40px; color: white; border:1px solid #555;"></span>
+                    Luck Token: <button onclick="togglePlayerLuck(${i})" class="luck-btn ${p.hasLuck ? 'active' : ''}">★</button>
+                </div>
+            </div>
+        `;
+            }).join('');
+        }
+
+        function updatePlayerStat(index, stat, value) {
+            party[index][stat] = parseInt(value);
+            saveParty();
+        }
+
+        function togglePlayerLuck(index) {
+            party[index].hasLuck = !party[index].hasLuck;
+            saveParty();
+        }
+
+        function deletePlayer(index) {
+            if (confirm("Remove this player?")) {
+                party.splice(index, 1);
+                saveParty();
+            }
+        }
+
+        function saveParty() {
+            localStorage.setItem('sd_party', JSON.stringify(party));
+            renderParty();
+        }
+
+        function addPlayerToCombatFromParty(index) {
+            const p = party[index];
+            combatants.push({ ...p, init: 0, id: Date.now() + Math.random() });
+            renderCombat();
+        }
+
+        // --- LIBRARY & COMBAT LOGIC ---
+        function saveToLibrary() {
+            const name = document.getElementById('lib-name').value;
+            const hp = parseInt(document.getElementById('lib-hp').value) || 1;
+            const ac = parseInt(document.getElementById('lib-ac').value) || 10;
+            if (!name) return alert("Monster needs a name!");
+            library.push({ name, hp, ac });
+            localStorage.setItem('sd_library', JSON.stringify(library));
+            renderLibrary();
+        }
+
+        function renderLibrary() {
+            const display = document.getElementById('library-display');
+            display.innerHTML = library.map((m, i) => `
+                <div class="library-item">
+                    <span><strong>${m.name}</strong> (HP:${m.hp} AC:${m.ac})</span>
+                    <div>
+                        <button class="combat-btn" onclick="addToCombat(${i})"></button>
+                        <button onclick="deleteFromLibrary(${i})" style="background:none; border:none;">🗑️</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function deleteFromLibrary(index) {
+            library.splice(index, 1);
+            localStorage.setItem('sd_library', JSON.stringify(library));
+            renderLibrary();
+        }
+
+        function addToCombat(libIndex) {
+            const monster = library[libIndex];
+            combatants.push({ ...monster, currentHp: monster.hp, init: 0, id: Date.now() + Math.random() });
+            renderCombat();
+        }
+
+        function addNPCtoCombat() {
+            const name = prompt("Enter NPC Name:");
+            if (!name) return; // Exit if user cancels or leaves name blank
+
+            const hp = parseInt(prompt("Enter HP:", "10")) || 0;
+            const ac = parseInt(prompt("Enter AC:", "10")) || 0;
+
+            // Push the new NPC to the combatants list
+            combatants.push({
+                name: name,
+                hp: hp,
+                currentHp: hp,
+                ac: ac,
+                init: 0,
+                id: Date.now()
+            });
+
+            renderCombat();
+        }
+
+        function renderCombat() {
+            combatants.sort((a, b) => b.init - a.init);
+            const list = document.getElementById('combat-list');
+            list.innerHTML = combatants.map((c, i) => `
+                <div class="combatant-row">
+                    <div>
+                        <span style="font-size: 0.85rem;">INIT: </span><input type="number" value="${c.init}" onchange="combatants[${i}].init = parseInt(this.value); renderCombat();" style="width:35px; color:var(--text);">
+                        <strong>${c.name}</strong> <span class="stat-badge">AC: ${c.ac}</span>
+                    </div>
+                    <div>
+                        <button onclick="combatants[${i}].currentHp--; renderCombat();">-</button>
+                        <span style="font-size: 0.8rem;">HP:</span> <input class="hp-input" type="number" value="${c.currentHp}" onchange="combatants[${i}].currentHp = parseInt(this.value)">
+                        <button onclick="combatants[${i}].currentHp++; renderCombat();">+</button>
+                        <button onclick="combatants.splice(${i}, 1); renderCombat();" style="background:none; border:none;">❌</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function clearCombat() { if (confirm("Clear initiative?")) { combatants = []; renderCombat(); } }
+
+        function triggerGong(msg, isTorch) {
+            document.getElementById('gong-sound').play();
+            if (isTorch) changeResource('torch', -1);
+            setTimeout(() => alert(msg), 100);
+        }
+
+        function addCondition(playerIndex) {
+            const cond = prompt("Enter Condition (e.g., Poisoned, Blinded, On Fire):");
+            if (cond) {
+                if (!party[playerIndex].conditions) party[playerIndex].conditions = [];
+                party[playerIndex].conditions.push(cond);
+                saveParty();
+            }
+        }
+
+        function removeCondition(playerIndex, condIndex) {
+            party[playerIndex].conditions.splice(condIndex, 1);
+            saveParty();
+        }
+
+        // --- SAVE / LOAD LOGIC ---
+        function exportGameState() {
+            let campaignName = prompt("Enter a name for this save:", "Shadowdark_Save");
+            if (campaignName === null) return;
+            if (campaignName.trim() === "") campaignName = "Shadowdark_Save";
+
+            const gameState = {
+                party: party,
+                resources: resources,
+                library: library,
+                presets: presets,
+                luckTokens: luckTokens,
+                combatants: combatants, // Added this
+                activeTimers: activeTimers, // Added this
+                timestamp: new Date().toLocaleString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gameState));
+            const downloadAnchorNode = document.createElement('a');
+            const safeName = campaignName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `${safeName}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importGameState(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+
+                    // Update global state
+                    party = importedData.party || [];
+                    localStorage.setItem('sd_party', JSON.stringify(party));
+
+                    resources = importedData.resources || { torch: 10, ration: 10 };
+                    localStorage.setItem('sd_resources', JSON.stringify(resources));
+
+                    library = importedData.library || [];
+                    localStorage.setItem('sd_library', JSON.stringify(library));
+
+                    presets = importedData.presets || [];
+                    localStorage.setItem('sd_presets', JSON.stringify(presets));
+
+                    luckTokens = importedData.luckTokens || [];
+                    localStorage.setItem('sd_luck', JSON.stringify(luckTokens));
+
+                    // NEW: Load Combat and Active Timers
+                    combatants = importedData.combatants || [];
+
+                    // Clear existing intervals before loading new timers to prevent "ghost" timers
+                    Object.values(activeTimers).forEach(t => { if (t.interval) clearInterval(t.interval); });
+                    activeTimers = importedData.activeTimers || {};
+
+                    // Restart the logic for any active timers that were running
+                    Object.keys(activeTimers).forEach(id => {
+                        const timerContainer = document.getElementById('active-custom-timers');
+                        const timerEl = document.createElement('div');
+                        timerEl.id = id;
+                        timerEl.className = 'preset-item';
+                        timerContainer.appendChild(timerEl);
+
+                        if (activeTimers[id].isRunning) {
+                            runTimerLogic(id);
+                        } else {
+                            updateTimerUI(id);
+                        }
+                    });
+
+                    init();
+                    alert("Campaign loaded successfully!");
+                } catch (err) {
+                    alert("Error loading file. Make sure it's a valid Shadowdark save file.");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearPartyAndResources() {
+            const confirmation = confirm("PERMANENT ACTION: This will delete all current players, their luck tokens, and reset your resources. Your Monster Library and Presets will remain. Are you sure you want to start a fresh game?");
+
+            if (confirmation) {
+                // 1. Empty the Party array
+                party = [];
+                localStorage.setItem('sd_party', JSON.stringify(party));
+
+                // 2. Empty the Luck Tokens array
+                luckTokens = [];
+                localStorage.setItem('sd_luck', JSON.stringify(luckTokens));
+
+                // 3. Reset Resources to default starting values
+                resources = { torch: 10, ration: 10 };
+                localStorage.setItem('sd_resources', JSON.stringify(resources));
+
+                // 4. Clear the Initiative list
+                combatants = [];
+
+                // 5. Reset the Torch Timer
+                resetTorch();
+
+                // 6. Refresh the entire UI to show the empty states
+                init();
+
+                alert("Party and resources cleared. You are ready for a new group!");
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
