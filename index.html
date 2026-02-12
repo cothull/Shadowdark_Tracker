@@ -1152,7 +1152,30 @@
         }
 
         init();
+
+        // This script checks if your PWA pieces are working
+  window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW Registered!', reg))
+        .catch(err => alert('Service Worker Failed: ' + err));
+    } else {
+      alert('Service Workers are not supported in this browser.');
+    }
+
+    // Check if manifest is linked
+    const manifest = document.querySelector('link[rel="manifest"]');
+    if (!manifest) {
+      alert('Manifest link is missing from your HTML head!');
+    }
+  });
+
+  // Listen for the install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('Install prompt is ready to go!');
+  });
     </script>
 </body>
+
 
 </html>
