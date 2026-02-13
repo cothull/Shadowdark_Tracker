@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shadowdark GM Console - Phase 2</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=New+Rocker&family=Tagesschrift&family=Montserrat:wght@400;700&display=swap');
 
@@ -642,6 +643,14 @@
     <audio id="gong-sound" src="https://actions.google.com/sounds/v1/alarms/dinner_gong.ogg"></audio>
 
     <script>
+        // --- PWA SERVICE WORKER REGISTRATION (ADD THIS FIRST) ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered!'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
 
         // --- GLOBAL STATE ---
         let resources = JSON.parse(localStorage.getItem('sd_resources')) || { torch: 10, ration: 10 };
@@ -1179,3 +1188,4 @@
 
 
 </html>
+
